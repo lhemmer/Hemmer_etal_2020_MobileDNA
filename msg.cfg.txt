@@ -1,0 +1,183 @@
+### D. virilis recombination msg file
+
+# For non-cluster usage, set cluster to 0
+cluster=1
+queue=1day
+
+# List of barcodes (columns = barcode/tplate_id/cross_id/tsex) - see posted example
+barcodes=barcodes1.3
+
+# Illumina index file parameters: (optional) 
+# Should be a fastq/fasta formatted file (can be gz).
+# index_file=idx.fastq
+# A list of labels with barcodes (tab separated) for each index you want to parse out
+# index_barcodes=indexes.txt
+
+# Use an experimental (faster) parser based on grep (1 for yes, 0 for no)
+# This should only be used if your barcode is at the beginning of the read and 
+# you want to keep everything after the barcode.
+new_parser=0
+# If using the new parser (see above), this chops of this number of base pairs
+# after the barcode.
+new_parser_offset=0
+# If using the new parser enter an optional sequence to filter out such as a dimer
+# adaptor.
+# new_parser_filter_out_seq=GTGCGAGGAGGCTTGAAGATCGGAA
+
+# Barcoded reads from a genetic cross
+reads=indivDys00_A01_ATGCATGC.fastq 
+
+# Set to 1 for more verbose output messages, and to prevent MSG to from deleting intermediate/temp files
+# Warning: Setting this to 1 will consume substantially more disk space.
+debug=0
+
+# Set to 1 to get plots of summarized result data: lod-matrix.bmp, missing.pdf, segregation.pdf,
+# and offdiagonal-lod.pdf.  (runs summaryPlots.R module)
+# Set to 0 to run a faster module (combine.py) and reduce memory usage.  It still produces
+# ancestry-probs-par1.tsv, and ancestry-probs-par2.tsv files.
+full_summary_plots=1
+
+# Restriction enzymes recognized: MseI|NdeI|Hpy188I|HphI|MboII|XcmI|Hpy188III|AhdI|HpyAV|null
+re_cutter=null #MseI first batch
+# linker_system enzymes recognized: Tn5-IonTorrent|Dros_SR_vII
+# (Set re_cutter above to null when using Tn5-IonTorrent here)
+linker_system=Tn5-IonTorrent #Dros_SR_vII first batch
+
+# Parental reference genomes
+# Note that all chromosome/contig information and genome coordinates are taken from parent1 genome
+# If you have updated the parental genomes previously, then use the names of the updated genomes here.
+parent1=s9_2.fasta
+parent2=s160_2.fasta
+
+# Set max_mapped_reads to limit the number of reads.  This will keep the first <max_mapped_reads> lines
+# in the sam files.  Benefits to using this could be to reduce computation time, the resoution of 
+# breakpoints tends to asymptote after a certain number of reads, so adding more reads doesn’t 
+# provide more information.  We also reduce the chance that one-read_per_contig ends up undersampling the genome.
+# Individuals with the most reads often produce small, clearly incorrect, hmm prob shifts where there is a 
+# pile of improper mapping. Perhaps repeetitive regions? Anyway, for individuals with fewer reads the hmm plows 
+# right through these regions.
+# NOTE: This option will truncate the sam files, so to try different # reads, you need to delete the *sam_files folder
+max_mapped_reads=10000
+
+# Algorithm for constructing BWT index: bwtsw (default) or is (for parental 
+# genomes smaller than 10MB)
+bwaindex1=bwtsw
+bwaindex2=bwtsw
+
+# Algorithm for BWA mapping (aln or bwasw)
+# aln should be faster (and more suited for short reads).  bwasw may be more
+# accurate. (This is ignored if use_stampy is set to 1)
+bwa_alg = aln
+
+# Number of threads used by BWA (multi-threading mode)
+bwa_threads = 1
+
+# Use stampy instead of BWA for mapping.  (1 or 0)
+use_stampy = 0
+# Pre-map with BWA before running stampy. This is almost always recommended. (1 or 0)
+# (This is ignored if use_stampy = 0 since you wouldn't be using stampy to begin with..)
+stampy_premap_w_bwa = 1
+
+# If running stampy, optionally specify how many pseudo threads it will use
+# this is only valid with the cluster option set to 1.
+# set this to 0 to not use this. 
+stampy_pseudo_threads = 0
+
+#theta indicates the amount of dependence between separate reads. If all reads are completely
+#independent, then theta= 1. If reads show some dependence, for example due to PCR duplication, then theta 
+#should be < 1. Valid values are 0 < theta ≤ 1.
+#See doi:10.1101/gr.9.9.868 and doi:10.1101/gr.078212.108 for further details.
+theta=1
+
+# Chromosomes to analyse, sex chromosomes (male hemizygous) and those 
+# to produce plots for
+# Note: If you genome contains many contigs, setting "chroms = all" may cause msg to take a long time to finish. 
+# Also, it is not clear how reliable the msg results will be for smaller contigs.
+# It is often expeditious to limit the analysis to only chromosomes and larger contigs.
+# So, for Drosophila, perhaps set "chroms = 2L,2R,3L,3R,4,X"
+chroms=all
+sexchroms=A
+chroms2plot=all
+
+# Priors on ancestry of autosomes, in following order
+# Homozygous parent1, heterozygous, homozygous parent2
+# For sex-linked chromosomes in males, the priors become (0.5, 0, 0.5).
+# F1 x F1 cross: 0.25,0.5,0.25 
+# F1 x parent2 backcross: 0,0.5,0.5
+priors=0.5,0.5,0
+
+# These two parameters determine the value of the "allele frequencies" (P_{kmj} in the paper)==gamma
+# Essentially they give the probability that the study strain does not have 
+# the same allele as the (perhaps updated) reference sequence, for the two parental strains. 
+# This parameter is estimated from putatively homozygous regions and a plot with the
+# error estimates for both parents can be found in hmm_fit_images (default 0.1)
+deltapar1=.01
+deltapar2=.01
+
+# MSG will output a GFF file (for importing into Geneious) for each individual
+# for each chromosome.  This value specifies the confidence threshold to use 
+# when selecting breakpoints to be included in the Geneious files.  The default is 
+# .95 (95%) which means it selects breakpoints at 5% and 95% confidence.
+gff_thresh_conf=.95
+
+# Recombination rate
+# Expected number of recombination events per genome per meiosis 
+# If recRate is =0, then 1 recomb per contig is used.
+# If recRate is specified != 0, then (recRate / genome) is used.
+recRate= 5
+
+# This parameter can be used to alter the recombination rate in the model:
+# if it is greater than one then the model will be tend to introduce more recombination
+# breakpoints; less than one and it will introduce fewer. (default 1)
+rfac=.00001
+
+# Minimum difference between posterior probs to thin (summaryPlots.R)
+difffac=0.01
+# Min fraction of missing data (summaryPlots.R)
+pnathresh=.03
+
+# For proportion emmision probs threshold.  (what percent of individuals should 
+# cover a chromosome site to be included in hmm_fits_ests.csv output file.)
+# Example .5 is 50%
+# (Leave unspecified if you don't need this. It will save some disk space)
+#pepthresh=.75
+
+# Used in fitting HMM.  Use 0 for FALSE, 1 for True
+one_site_per_contig=1
+
+# Should all reads be quality trimmed and what values to use. 
+# Set quality_trim_reads_thresh to 0 to skip this step.
+# Base intensity threshold value (Phred quality scores 0 to 40
+
+quality_trim_reads_thresh = 10
+
+# Minimum number of consecutive bases passing threshold values
+
+quality_trim_reads_consec = 30
+
+#When using Stampy, set divergence for mapping reads to a reference (note: this is
+#strongly recommended by stampy for divergences >3%, as it will automatically
+#shut down BWA pre-mapping which otherwise cause occasional segfaults)
+#(stampy default if .001) #comment out to use stampy default.
+#This is in %. For example if you want 5% set these values to 0.05
+indiv_stampy_substitution_rate = 0.05
+
+# Filter out poor alignments, set this to 0 to skip
+indiv_mapq_filter = 20
+
+# Custom qsub options.  Modify these if you are running on a customized SGE with
+# special options for requesting an exclusive node. The commented out options below
+# are what are used for the cluster at Janelia Farm.
+# These default to blank if they are not specified.
+# for the pe option leave off the slot count, this is set from the threads option.
+#addl_qsub_option_for_exclusive_node=-l mem96=true,excl=true
+custom_qsub_options_for_all_cmds=-q sixhour -l nodes=2:ppn=10:ib,mem=20gb,walltime=6:00:00
+#addl_qsub_option_for_pe=-pe batch
+#threads=8
+
+# Send an email alert when the MSG run is complete/succeeds (optional)
+# Warning: an email will NOT be sent if there is an error and MSG does not
+# finish.
+# (Separate multiple email addresses with ;)
+#email_host=10.11.5.81
+#notify_emails=test@example.com
