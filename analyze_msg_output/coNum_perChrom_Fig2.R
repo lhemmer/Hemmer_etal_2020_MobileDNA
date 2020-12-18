@@ -184,21 +184,52 @@ dev.off()
 
 
 
+####################################################################################
+#### Analysis of crossover summaries per chromosome
+####################################################################################
+
+
+#### add data for all dysgenic flies
+
+dys.all <- brks[brks$dys == "dys",]
+
+#### get summary of crossovers for dysgenic flies
+
+dys.all.num <- co.sum.loop(dys.all, contigs)
+
+#### analysis of difference between dysgenic and non-dysgenic flies
+
+## get sum of all crossover categories across chromosomes
+
+dys.prop <- colSums(dys.all.num)
+non.prop <- colSums(non.all.num)
+high.prop <- colSums(high.all.num)
+low.prop <- colSums(low.all.num)
+
+#### combine data frame and analyze with chi-square test
+
+## all dysgenic crossovers compared to non-dysgenic crossovers
+
+dys.vs.non <- t(rbind(dys.prop,non.prop))
+
+chisq.test(dys.vs.non) ## not significant
+#X-squared = 4.6457, df = 4, p-value = 0.3256
+
+## high fecund dysgenic compared to low fecund dysgenic
+
+high.vs.low <- t(rbind(high.prop,low.prop))
+
+chisq.test(high.vs.low) ## not significant
+#X-squared = 0.52929, df = 4, p-value = 0.9706
 
 
 
-ggplot(data=all.dys, aes(x=dys, y=number, fill=chromosome)) + 
-  geom_bar(stat="identity" ) + 
-  facet_grid(~CO)+
-  geom_errorbar(aes(ymin=low, ymax=high), width=0.5, position="identity")+
-  labs(title="CO Count by Chromosome", y = "Proportion of Chromosomes", x = "Dysgenic or Non-Dysgenic Class") +
-  scale_fill_grey(start = 0.8, end = 0.2,name="Chromosome")+
-  #scale_fill_brewer(palette="Dark2") +
-  #scale_fill_manual(values=c( "#810F7C" ,"#88419D", "#8C6BB1", "#8C96C6" ,"#9EBCDA")) +
-  theme_minimal()+
-  #theme(legend.position = "none")+
-  theme(plot.title = element_text(face="bold",hjust = 0.5))+
-  scale_y_continuous(limits = c(0,0.45), expand = c(0, 0))
+
+
+
+
+
+
 
 
 
